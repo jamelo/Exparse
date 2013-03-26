@@ -1,3 +1,10 @@
+bin/
+obj/
+doxygen/
+*.save
+*.depend
+*.layout
+
 # Compiled Object files
 *.slo
 *.lo
