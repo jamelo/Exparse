@@ -131,7 +131,10 @@ class Token
 		} _tokenData;
 
 	public:
-		Token() : _type(NONE) { }
+		Token(unsigned int tlocation = 0) :
+			_type(NONE),
+			_location(tlocation)
+		{ }
 
 		Token(NumberToken token, unsigned int tlocation) :
 			_type(NUMBER) ,

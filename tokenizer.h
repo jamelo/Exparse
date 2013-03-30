@@ -362,7 +362,6 @@ class Tokenizer
 
 		Token parseOperator(const std::string& expr, unsigned int& index, int types)
 		{
-			//TODO: do check for operator context somewhere else. we need to return an operator here for error information
 			unsigned int i = index;
 			unsigned int operatorID = functionContext.parseOperator(expr, i, types);
 
@@ -396,9 +395,7 @@ class Tokenizer
 			t = parseIdentifier(expr, index);
 			if (t.type() != Token::NONE) return t;
 
-			//TODO: consider making this smarter, taking into account previous token types
-
-			int opTypeToFind = 0;
+			int opTypeToFind = Operator::POS_INFIX | Operator::POS_POSTFIX | Operator::POS_PREFIX;
 
 			switch (lastToken.type())
 			{
@@ -437,7 +434,7 @@ class Tokenizer
 			t = parseOperator(expr, index, opTypeToFind);
 			if (t.type() != Token::NONE) return t;
 
-			return Token();
+			return Token(index);
 		}
 
 		bool consumeDelimiter(Token& t)

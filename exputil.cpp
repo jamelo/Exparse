@@ -20,7 +20,7 @@ namespace Exparse
 				case Token::OPERATOR:		return std::string("OPERATOR");
 				case Token::END:			return std::string("END");
 				case Token::DELIMITER:		return std::string("DELIMITER");
-				default: assert(false);
+				default: 					return std::string("UNKNOWN");
 			}
 
 			return std::string();

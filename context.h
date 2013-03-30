@@ -8,9 +8,12 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <map>
 #include <unordered_map>
 #include <cmath>
+
+#include <mutex>
 
 #include "function.h"
 #include "variable.h"
@@ -21,12 +24,45 @@
 class FunctionContext
 {
 	private:
+		struct OperatorComparator
+		{
+			const std::vector<Operator>& operatorList;
+
+			OperatorComparator(const std::vector<Operator>& ops) :
+				operatorList(ops)
+			{ }
+
+			bool operator()(unsigned int i1, unsigned int i2) const
+			{
+				const Operator& a = operatorList[i1];
+				const Operator& b = operatorList[i2];
+
+				if (a._symbol.length() > b._symbol.length())
+					return true;
+				if (a._symbol.length() < b._symbol.length())
+					return false;
+
+				if (a._precedence < b._precedence)
+					return true;
+				if (a._precedence > b._precedence)
+					return false;
+
+				if (a._position < b._position)
+					return true;
+				if (a._position > b._position)
+					return false;
+
+				if (a._symbol.compare(b._symbol) > 0)
+					return true;
+
+				return false;
+			}
+		};
+
 		std::vector<Operator> _operators;
 		std::vector<Function> _functions;
-		std::unordered_map<std::string, unsigned int> _operatorIndex;
 		std::unordered_map<std::string, unsigned int> _functionIndex;
-		//TODO: consider using vector for op precedence index and sort upon insertion should result in faster iteration.
-		std::multimap<unsigned int, unsigned int> _operatorPrecedenceIndex;
+		std::set<unsigned int, OperatorComparator> operatorOrderedIndex;
 
 	public:
 		FunctionContext();

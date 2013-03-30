@@ -5,14 +5,15 @@
 
 #include	"context.h"
 
-FunctionContext::FunctionContext()
+FunctionContext::FunctionContext() :
+	operatorOrderedIndex(OperatorComparator(_operators))
 {
 	unsigned int numOps = Operator::numDefaultOperators / sizeof(Operator);
 	unsigned int numFuncs = Function::numDefaultFunctions / sizeof(Function);
 
-	_operators.reserve(numOps);
+	//_operators.reserve(numOps);
 	_functions.reserve(numFuncs);
-	_operatorIndex.reserve(numOps);
+	//_operatorIndex.reserve(numOps);
 	_functionIndex.reserve(numFuncs);
 
 	for (unsigned int i = 0; i < numOps; i++)
@@ -26,22 +27,8 @@ void FunctionContext::registerOperator(const Operator& o)
 {
 	//TODO: make thread-safe
 
-	//TODO: sort operators by length (longest to shortest) and then by precedence (highest to lowest)
-
-	auto it = _operatorIndex.find(o.symbol());
-	if (it != _operatorIndex.end())
-		assert(_operators[it->second].position() != o.position());
-
-	unsigned int index = _operators.size();
-	std::pair<std::string, unsigned int> kvp1;
-	std::pair<unsigned int, unsigned int> kvp2;
-
 	_operators.push_back(o);
-	kvp1 = std::pair<std::string, unsigned int>(o.symbol(), index);
-	kvp2 = std::pair<unsigned int, unsigned int>(o.precedence(), index);
-
-	_operatorIndex.insert(kvp1);
-	_operatorPrecedenceIndex.insert(kvp2);
+	operatorOrderedIndex.insert(_operators.size() - 1);
 }
 
 void FunctionContext::registerFunction(const Function& f)
@@ -72,20 +59,34 @@ unsigned int FunctionContext::getFunctionID(std::string name) const
 unsigned int FunctionContext::parseOperator(const std::string& expr, unsigned int& index, int positions) const
 {
 	//TODO: make thread-safe?
-	for (auto it = _operatorPrecedenceIndex.begin(); it != _operatorPrecedenceIndex.end(); it++)
+	//TODO: make search faster than O(n) somehow
+	auto backupOp = operatorOrderedIndex.end();
+
+	for (auto it = operatorOrderedIndex.begin(); it != operatorOrderedIndex.end(); it++)
 	{
-		const Operator* op = &_operators[it->second];
+		const Operator* op = &_operators[*it];
+
 		std::string opsymbol = op->symbol();
 		std::string inputChunk = expr.substr(index, opsymbol.length());
 
-		if (opsymbol.compare(inputChunk) == 0 && (op->position() & positions))
+		if (opsymbol.compare(inputChunk) == 0)
 		{
-			index += opsymbol.size();
-			return it->second + 1;
+			if (op->position() & positions)
+			{
+				index += opsymbol.size();
+				return *it + 1;
+			}
+			else if (backupOp == operatorOrderedIndex.end())
+			{
+				backupOp = it;
+			}
 		}
 	}
 
-	return NULLID;
+	if (backupOp != operatorOrderedIndex.end())
+		return *backupOp + 1;
+	else
+		return NULLID;
 }
 
 const Operator* FunctionContext::lookupOperator(unsigned int id) const
