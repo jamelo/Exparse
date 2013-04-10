@@ -9,6 +9,13 @@ namespace Exparse
 {
 	namespace util
 	{
+        /** \brief Returns a string containing the name of the given token type
+         *
+         * \param type	The token type to be named
+         * \return 		A string containing the name of the given token type
+         *
+         */
+
 		std::string lookupTokenTypeString(Token::TokenType type)
 		{
 			switch (type)
@@ -25,6 +32,16 @@ namespace Exparse
 
 			return std::string();
 		}
+
+        /** \brief Converts any token into a string representation
+         *
+         * \param t		The token to be converted to a string
+         * \param fc	A FunctionContext object for determining the name of function tokens
+         * \param vc	A VariableContext object for determining the name of variable tokens
+         * \return		A string representation of the given token
+         *
+         */
+
 
 		std::string tokenToString(Token& t, const FunctionContext& fc, VariableContext& vc)
 		{
